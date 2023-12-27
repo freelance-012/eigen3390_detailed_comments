@@ -1048,23 +1048,40 @@ namespace Eigen {
 #endif
 
 
-// TODO 读到这儿了 20231221_1812
 #if EIGEN_COMP_MSVC
   // NOTE MSVC often gives C4127 warnings with compiletime if statements. See bug 1362.
   // This workaround is ugly, but it does the job.
+  /// 如果是在 MSVC 环境下编译，EIGEN_CONST_CONDITIONAL 被定义为 (void)0, cond。
+  /// 这是一种技巧，将 (void)0 连接到条件表达式 cond 上，
+  /// 这样做的目的是抑制 MSVC 编译器产生的关于常量条件表达式（Conditional Expression is Constant）的警告（C4127）
+  /*
+   * 这个宏的定义使用了逗号运算符，逗号运算符会依次执行多个表达式，并返回最后一个表达式的值。
+   * 在这里，(void)0 是一个表达式，它的作用是生成一个无用的表达式，并将其结果丢弃。
+   * 然后，, 将这个无用的表达式和条件表达式 cond 连接在一起。
+   * 
+   * 这个宏的设计巧妙地利用了逗号运算符的特性，
+   * 在一些编译器环境下，(void)0 被视为无操作，并且不影响程序的行为，
+   * 但它在连接到条件表达式 cond 之后，在编译器的语法分析中能够消除或抑制关于常量条件表达式的警告。
+   * 因此，这种写法被用来规避某些编译器可能产生的警告，让代码在特定环境下能够编译通过。
+  */
 #  define EIGEN_CONST_CONDITIONAL(cond)  (void)0, cond
 #else
 #  define EIGEN_CONST_CONDITIONAL(cond)  cond
 #endif
 
 #ifdef EIGEN_DONT_USE_RESTRICT_KEYWORD
+  /// 如果 EIGEN_DONT_USE_RESTRICT_KEYWORD 被定义了，
+  /// 那么就定义 EIGEN_RESTRICT 为空，也就是不使用 restrict 关键字。
   #define EIGEN_RESTRICT
 #endif
 #ifndef EIGEN_RESTRICT
-  #define EIGEN_RESTRICT __restrict
+  ///  __restrict，这个关键字用于告诉编译器指针是独立的，没有别名（alias）。
+  #define EIGEN_RESTRICT __restrict 
 #endif
 
-
+/// 这段代码的目的是为了提供一个默认的输入输出格式，
+/// 在文档生成过程中和其他情况下使用不同的格式，
+/// 以便在 Eigen 库中控制数据输出时的格式化样式。
 #ifndef EIGEN_DEFAULT_IO_FORMAT
 #ifdef EIGEN_MAKING_DOCS
 // format used in Eigen's documentation
@@ -1078,7 +1095,7 @@ namespace Eigen {
 // just an empty macro !
 #define EIGEN_EMPTY
 
-
+//略
 // When compiling CUDA/HIP device code with NVCC or HIPCC
 // pull in math functions from the global namespace.
 // In host mode, and when device code is compiled with clang,
@@ -1089,7 +1106,7 @@ namespace Eigen {
   #define EIGEN_USING_STD_MATH(FUNC) using std::FUNC;
 #endif
 
-
+//略
 // When compiling HIP device code with HIPCC, certain functions
 // from the stdlib need to be pulled in from the global namespace
 // (as opposed to from the std:: namespace). This is because HIPCC
@@ -1102,7 +1119,8 @@ namespace Eigen {
   #define EIGEN_USING_STD(FUNC) using std::FUNC;
 #endif
 
-
+/// 首先检查是否在严格模式下使用了 Microsoft Visual C++ 编译器，并且条件满足一定的版本要求，或者当前使用的是 NVCC 编译器。
+//todo 读到这儿了 20231228_0252
 #if EIGEN_COMP_MSVC_STRICT && (EIGEN_COMP_MSVC < 1900 || EIGEN_COMP_NVCC)
   // for older MSVC versions, as well as 1900 && CUDA 8, using the base operator is sufficient (cf Bugs 1000, 1324)
   #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
