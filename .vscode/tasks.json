@@ -1,0 +1,36 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "CMake Configure",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "-S",
+                "${workspaceFolder}", // 这里是你的 CMakeLists.txt 文件所在的文件夹
+                "-B",
+                "${workspaceFolder}/build", // 这里是你想要生成的构建文件夹路径]
+				"-D",
+				"CMAKE_INSTALL_PREFIX=${workspaceFolder}/installdir"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "CMake Build",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/build", // 这里是你的构建文件夹路径
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+			"dependsOn": ["CMake Configure"]
+        }
+    ]
+}

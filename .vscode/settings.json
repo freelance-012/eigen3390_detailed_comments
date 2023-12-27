@@ -1,0 +1,18 @@
+{
+    "files.associations": {
+        "core": "c",
+        "macros.h": "c",
+        "alignedvector3": "cpp",
+        "bitset": "cpp",
+        "vector": "cpp",
+        "future": "cpp",
+        "iosfwd": "cpp",
+        "istream": "cpp",
+        "optional": "cpp",
+        "ostream": "cpp",
+        "streambuf": "cpp",
+        "functional": "cpp",
+        "tuple": "cpp",
+        "openglsupport": "cpp"
+    }
+}

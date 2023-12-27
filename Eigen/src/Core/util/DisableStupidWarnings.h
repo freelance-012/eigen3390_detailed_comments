@@ -50,23 +50,24 @@
     #pragma clang diagnostic ignored "-Wc11-extensions"
   #endif
 
-#elif defined __GNUC__
+#elif defined __GNUC__  /// 判断是否使用GCC编译器
 
   #if (!defined(EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS)) &&  (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
-    #pragma GCC diagnostic push
+    /// #pragma指令的作用是暂时关闭GCC在编译时可能出现的一些特定警告，以确保 Eigen 库在这些条件下能够顺利编译，而不受这些特定的编译器警告的影响。
+    #pragma GCC diagnostic push /// 先保存当前编译器的警告状态，后续可以通过pop操作还原
   #endif
   // g++ warns about local variables shadowing member functions, which is too strict
-  #pragma GCC diagnostic ignored "-Wshadow"
+  #pragma GCC diagnostic ignored "-Wshadow"  /// 忽略对变量遮蔽的警告
   #if __GNUC__ == 4 && __GNUC_MINOR__ < 8
     // Until g++-4.7 there are warnings when comparing unsigned int vs 0, even in templated functions:
-    #pragma GCC diagnostic ignored "-Wtype-limits"
+    #pragma GCC diagnostic ignored "-Wtype-limits"  /// 针对4.7之前的版本，禁止“在比较无符号整数和0的情况下发出警告”这类警告
   #endif
   #if __GNUC__>=6
-    #pragma GCC diagnostic ignored "-Wignored-attributes"
+    #pragma GCC diagnostic ignored "-Wignored-attributes"  /// 忽略某些属性被忽略的警告
   #endif
   #if __GNUC__==7
     // See: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89325
-    #pragma GCC diagnostic ignored "-Wattributes"
+    #pragma GCC diagnostic ignored "-Wattributes"  /// 针对GCC7版本，忽略对于属性的警告
   #endif
 #endif
 

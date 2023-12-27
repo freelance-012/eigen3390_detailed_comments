@@ -11,6 +11,7 @@
 #ifndef EIGEN_CORE_H
 #define EIGEN_CORE_H
 
+/// 临时禁用编译期的一些警告（并在在编译完这个模块后，会恢复，不影响其他代码的编译）
 // first thing Eigen does: stop the compiler from committing suicide
 #include "src/Core/util/DisableStupidWarnings.h"
 
