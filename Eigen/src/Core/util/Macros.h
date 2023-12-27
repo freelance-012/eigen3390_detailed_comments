@@ -14,21 +14,29 @@
 //------------------------------------------------------------------------------------------
 // Eigen version and basic defaults
 //------------------------------------------------------------------------------------------
-
+/// Eigen的版本信息
 #define EIGEN_WORLD_VERSION 3
 #define EIGEN_MAJOR_VERSION 3
 #define EIGEN_MINOR_VERSION 90
 
+/// 用于检查当前Eigen版本是否至少是大于等于指定版本x.y.z   若是，返回true，否则 返回false
+/// 作用：确保代码在依赖某个Eigen版本的情况下，可以检查并适配不同版本的Eigen库
 #define EIGEN_VERSION_AT_LEAST(x,y,z) (EIGEN_WORLD_VERSION>x || (EIGEN_WORLD_VERSION>=x && \
                                       (EIGEN_MAJOR_VERSION>y || (EIGEN_MAJOR_VERSION>=y && \
                                                                  EIGEN_MINOR_VERSION>=z))))
 
+/// 在CMakeLists.txt中设置EIGEN_DEFAULT_TO_ROW_MAJOR选项，用来确定EIGEN矩阵的存储顺序
+/// 从而为EIGEN_DEFAULT_MATRIX_SOTRAGE_ORDER_OPTION设置不同的值: Eigen::RowMajor 或 Eigen::ColMajor
 #ifdef EIGEN_DEFAULT_TO_ROW_MAJOR
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Eigen::RowMajor
 #else
 #define EIGEN_DEFAULT_MATRIX_STORAGE_ORDER_OPTION Eigen::ColMajor
 #endif
 
+/// 如果没有定义EIGEN_DEFAULT_DENSE_INDEX_TYPE宏，则将其定义为 std::ptrdiff_t
+/// 这个宏用于指定Eigen库中的 默认稠密矩阵索引类型
+/// 作用：允许用户或开发者在没有指定特定索引类型时，使用默认的稠密矩阵索引类型。
+/// 通常，std::ptrdiff_t用来表示指针之间的差值（偏移量）的类型。
 #ifndef EIGEN_DEFAULT_DENSE_INDEX_TYPE
 #define EIGEN_DEFAULT_DENSE_INDEX_TYPE std::ptrdiff_t
 #endif
@@ -36,6 +44,9 @@
 // Upperbound on the C++ version to use.
 // Expected values are 03, 11, 14, 17, etc.
 // By default, let's use an arbitrarily large C++ version.
+/// 设置可以使用的C++版本上限。如果没有定义这个宏，则给一个默认值99（非常大的值，现在C++版本有03,11,14,17,23等）
+/// 作用：在某些情况下，特定的C++特性可能在特定的Eigen版本中可用，因此通过这个宏，来保证Eigen与C++的兼容性
+/// 比如，设置该宏伟14，则在编译器（C++编译器可能支持到C++23）编译时，将不会使用超过C++14以上版本的特性（比如，不会使用C++17, 21, 23的特性）
 #ifndef EIGEN_MAX_CPP_VER
 #define EIGEN_MAX_CPP_VER 99
 #endif
@@ -45,10 +56,15 @@
   * They currently include:
   *   - single precision ArrayBase::sin() and ArrayBase::cos() for SSE and AVX vectorization.
   */
+/// 有一些对计算速度的优化可能会影响结果的精度，这个宏可以来禁用或启用这些优化。  
+/// 这些优化主要针对SSE和AVX向量化的单精度的ArrayBase::sin()和ArrayBase::cos()方法。默认是开启的，以提高执行速度，但在某些情况下可能会影响精度。
+/// EIGEN_FAST_MATH设置为0，表示禁用这些优化，则可能损失一点执行速度，从而提高计算精度； 设置为1，表示启用优化，则可能损失一点精度，而提高计算速度。
 #ifndef EIGEN_FAST_MATH
 #define EIGEN_FAST_MATH 1
 #endif
 
+/// 这个宏用来限制Eigen库在栈上进行内存分配时所能使用的最大空间。默认131072(=128KB)。
+/// 
 #ifndef EIGEN_STACK_ALLOCATION_LIMIT
 // 131072 == 128 KB
 #define EIGEN_STACK_ALLOCATION_LIMIT 131072
@@ -56,9 +72,12 @@
 
 //------------------------------------------------------------------------------------------
 // Compiler identification, EIGEN_COMP_*
+/// 设置不同编译器的不同版本号。我使用的是GCC9.4编译器，因此EIGEN_COMP_GNUC被设置为94，其他EIGEN_COMP_*均设置为0
+/// 作用：可以根据这个宏，在代码中基于编译器的不同做出不同的操作或设置。
 //------------------------------------------------------------------------------------------
 
 /// \internal EIGEN_COMP_GNUC set to 1 for all compilers compatible with GCC
+/// EIGEN_COMP_GNUC 设置GCC编译器的版本号 GCC9.4 ==> 94
 #ifdef __GNUC__
   #define EIGEN_COMP_GNUC (__GNUC__*10+__GNUC_MINOR__)
 #else
@@ -108,6 +127,7 @@
   #define EIGEN_COMP_MSVC 0
 #endif
 
+/// EIGEN_COMP_NVCC  检查当前是否在NVIDIA CUDA编译环境中
 #if defined(__NVCC__)
 #if defined(__CUDACC_VER_MAJOR__) && (__CUDACC_VER_MAJOR__ >= 9)
   #define EIGEN_COMP_NVCC  ((__CUDACC_VER_MAJOR__ * 10000) + (__CUDACC_VER_MINOR__ * 100))
@@ -197,6 +217,7 @@
 
 
 #if EIGEN_COMP_GNUC
+  /// 这里针对GCC编译器 增加几个宏定义来判断 版本至少、之多、等于 x.y
   #define EIGEN_GNUC_AT_LEAST(x,y) ((__GNUC__==x && __GNUC_MINOR__>=y) || __GNUC__>x)
   #define EIGEN_GNUC_AT_MOST(x,y)  ((__GNUC__==x && __GNUC_MINOR__<=y) || __GNUC__<x)
   #define EIGEN_GNUC_AT(x,y)       ( __GNUC__==x && __GNUC_MINOR__==y )
@@ -207,6 +228,7 @@
 #endif
 
 // FIXME: could probably be removed as we do not support gcc 3.x anymore
+/// 这个宏EIGEN_GCC3_OR_OLDER 如果GCC编译器版本小于等于3，则设置为1. 但注释说，可以删掉这个宏了，因为EIGEN不再支持gcc 3.x的旧版本了
 #if EIGEN_COMP_GNUC && (__GNUC__ <= 3)
 #define EIGEN_GCC3_OR_OLDER 1
 #else
@@ -217,6 +239,7 @@
 
 //------------------------------------------------------------------------------------------
 // Architecture identification, EIGEN_ARCH_*
+/// 这些宏用来表示 当前系统的架构。 x86_64, i386, arm,  arm64,  MIPS,  SPARC, Intel Itanium, PowerPC等架构设置对应的宏 
 //------------------------------------------------------------------------------------------
 
 
@@ -290,6 +313,7 @@
 
 //------------------------------------------------------------------------------------------
 // Operating system identification, EIGEN_OS_*
+/// 这部分宏用来表示 当前操作系统。 unix, linux, ANDROID, FreeBSD, apple, QNX, MAC, WIN, WIN64等等
 //------------------------------------------------------------------------------------------
 
 /// \internal EIGEN_OS_UNIX set to 1 if the OS is a unix variant
@@ -402,6 +426,8 @@
 
 //------------------------------------------------------------------------------------------
 // Detect GPU compilers and architectures
+/// 总而言之，就是检测GPU编译器和架构的宏定义们。 如果使用了GPS，将对应的EIGEN_CUDACC, EIGEN_ARCH等宏设置为合适的值。
+/// 以便在代码中针对不同的编译环境进行条件编译。
 //------------------------------------------------------------------------------------------
 
 // NVCC is not supported as the target platform for HIPCC
@@ -505,6 +531,11 @@
 
 //------------------------------------------------------------------------------------------
 // Detect Compiler/Architecture/OS specific features
+/// 检测编译器、架构和操作系统是否支持特定的C++特性和扩展，并根据检测结果定义相关宏
+/// - C++11中的各项特性，如__has_feature(cxx_rvalue_references), __has_feature(cxx_alignas), __has_feature(cxx_relaxed_constexpr)等
+/// - C++14和C++17中的特性，如EIGEN_HAS_CXX14 和 EIGEN_HAS_CXX17_OVERALIGN等
+/// - C++标准中的数据结构和函数，如EIGEN_HAS_CXX11_CONTAINERS, EIGEN_HAS_CXX11_MATH等
+/// - 编译器相关特性，如 EIGEN_HAS_RVALUE_REFERENCES, EIGEN_HAS_ALIGNS等
 //------------------------------------------------------------------------------------------
 
 #if EIGEN_GNUC_AT_MOST(4,3) && !EIGEN_COMP_CLANG
@@ -583,6 +614,7 @@
 
 // Does the compiler support C99?
 // Need to include <cmath> to make sure _GLIBCXX_USE_C99 gets defined
+/// 判断是否支持C99  
 #include <cmath>
 #ifndef EIGEN_HAS_C99_MATH
 #if EIGEN_MAX_CPP_VER>=11 && \
@@ -775,27 +807,33 @@
 
 //------------------------------------------------------------------------------------------
 // Preprocessor programming helpers
+/// 下面这些预处理器宏帮助尽心给与处理过程中的宏操作和编译器特性的设置。
 //------------------------------------------------------------------------------------------
 
 // This macro can be used to prevent from macro expansion, e.g.:
 //   std::max EIGEN_NOT_A_MACRO(a,b)
+/// - EIGEN_NOT_A_MACRO: 防止宏展开
 #define EIGEN_NOT_A_MACRO
 
+/// - EIGEN_DEBUG_VAR(x): 输出变量的值和名称，方便调试
 #define EIGEN_DEBUG_VAR(x) std::cerr << #x << " = " << x << std::endl;
 
 // concatenate two tokens
+/// - EIGEN_CAT: 将两个令牌连接成一个新的令牌
 #define EIGEN_CAT2(a,b) a ## b
 #define EIGEN_CAT(a,b) EIGEN_CAT2(a,b)
 
 #define EIGEN_COMMA ,
 
 // convert a token to a string
+/// - EIGEN_MAKESTRING: 将一个令牌转成字符串
 #define EIGEN_MAKESTRING2(a) #a
 #define EIGEN_MAKESTRING(a) EIGEN_MAKESTRING2(a)
 
 // EIGEN_STRONG_INLINE is a stronger version of the inline, using __forceinline on MSVC,
 // but it still doesn't use GCC's always_inline. This is useful in (common) situations where MSVC needs forceinline
 // but GCC is still doing fine with just inline.
+/// - EIGEN_STRONG_INLINE 和 EIGEN_ALWAYS_INLINE: 设置函数为内联函数
 #ifndef EIGEN_STRONG_INLINE
 #if EIGEN_COMP_MSVC || EIGEN_COMP_ICC
 #define EIGEN_STRONG_INLINE __forceinline
@@ -818,6 +856,7 @@
 #define EIGEN_ALWAYS_INLINE EIGEN_STRONG_INLINE
 #endif
 
+/// - EIGEN_DONT_INLINE: 阻止函数被内联
 #if EIGEN_COMP_GNUC
 #define EIGEN_DONT_INLINE __attribute__((noinline))
 #elif EIGEN_COMP_MSVC
@@ -826,6 +865,7 @@
 #define EIGEN_DONT_INLINE
 #endif
 
+/// - EIGEN_PERMISSIVE_EXPR: 对于某些表达式，标记为使用特定编译器的宽松扩展
 #if EIGEN_COMP_GNUC
 #define EIGEN_PERMISSIVE_EXPR __extension__
 #else
@@ -833,7 +873,10 @@
 #endif
 
 // GPU stuff
+/// 以下的宏主要用于根据不同的GPU编译器（如NVCC, clang-cuda, SYCL, HIPCC）进行一些设置，具体功能包括：
 
+/// - EIGEN_CUDACC, SYCL_DEVICE_ONLY, EIGEN_HIPCC: 用于检查当前是否使用了与GPU相关的编译器
+/// - EIGEN_NO_DEBUG, EIGEN_INTERNAL_DEBUGGING, EIGEN_EXCEPTIONS: 当使用GPU编译器时，禁用调试相关的功能和异常处理
 // Disable some features when compiling with GPU compilers (NVCC/clang-cuda/SYCL/HIPCC)
 #if defined(EIGEN_CUDACC) || defined(SYCL_DEVICE_ONLY) || defined(EIGEN_HIPCC)
   // Do not try asserts on device code
@@ -850,6 +893,8 @@
   #endif
 #endif
 
+/// - EIGEN_DONT_VECTORIZE: 在SYCL设备上禁用向量优化
+/// - EIGEN_DEVICE_FUNC: 根据编译器不同，设定函数在GPU上的执行方式。比如在CUDA/HIP上调用的函数需要使用__host__ __device__ 修饰
 #if defined(SYCL_DEVICE_ONLY)
   #ifndef EIGEN_DONT_VECTORIZE
     #define EIGEN_DONT_VECTORIZE
@@ -864,18 +909,35 @@
 
 
 // this macro allows to get rid of linking errors about multiply defined functions.
+/// 这些宏用于声明和定义允许多重定义的函数
+/// 在处理允许多重定义的函数时，存在两种可能得选项，静态和内联：
+/// - 静态： 
+/// - 内联：
 //  - static is not very good because it prevents definitions from different object files to be merged.
 //           So static causes the resulting linked executable to be bloated with multiple copies of the same function.
 //  - inline is not perfect either as it unwantedly hints the compiler toward inlining the function.
+/// 这些注释提到了这两种选项各自的缺点，静态导致文件大小增加，而内联则可能导致意外的内联优化。
+/// 这可能解释了为什么在这种情况下，使用了更适合允许多重定义的函数的 EIGEN_DEVICE_FUNC 宏，而不是静态或内联关键字
+
+/// EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS：用于声明允许多重定义的函数。
+/// 在 GPU 环境下，可能会遇到链接错误，该宏允许在不同的编译单元中声明相同的函数。
 #define EIGEN_DECLARE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_DEVICE_FUNC
+/// EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS：用于定义允许多重定义的函数。
+/// 在这里，该宏被定义为 EIGEN_DEVICE_FUNC inline，这意味着函数可以在 GPU 上执行，并且允许多个定义
 #define EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_DEVICE_FUNC inline
 
+/// NDEBUG是一个预处理宏，通常在release版本中用于禁止调试代码
+/// 如果定义了NDEBUG，但没有EIGEN_NO_DEBUG，则定义EIGEN_NO_DEBUG，以关闭调试
 #ifdef NDEBUG
 # ifndef EIGEN_NO_DEBUG
 #  define EIGEN_NO_DEBUG
 # endif
 #endif
 
+/// eigen_plain_assert:
+/// - 对于GCC<=4.3版本，存在的bug89，专门进行断言的实现：使用copy_bool函数来检查
+/// - 对于其他不存在bug的版本，直接调用标准的assert宏进行断言
+/// - 如果已经声明了EIGEN_NO_DEBUG宏，则 eigen_plain_assert 设置为空
 // eigen_plain_assert is where we implement the workaround for the assert() bug in GCC <= 4.3, see bug 89
 #ifdef EIGEN_NO_DEBUG
   #ifdef SYCL_DEVICE_ONLY // used to silence the warning on SYCL device
@@ -918,11 +980,14 @@
   #endif
 #endif
 
+/// 当eigen_assert宏没有被定义时，会调用eigen_plain_assert进行断言
+/// 这种机制使得用户可以选择是否自定义eigen_assert宏的行为
 // eigen_assert can be overridden
 #ifndef eigen_assert
 #define eigen_assert(x) eigen_plain_assert(x)
 #endif
 
+/// 在不同的调试和优化条件下提供了一些帮助。eigen_internal_assert 宏在内部调试开启时使用 eigen_assert 进行断言操作，否则会被置为空。
 #ifdef EIGEN_INTERNAL_DEBUGGING
 #define eigen_internal_assert(x) eigen_assert(x)
 #else
@@ -930,20 +995,27 @@
 #endif
 
 #ifdef EIGEN_NO_DEBUG
+/// 非调试模式下将传入的参数标记为未使用的变量，以避免编译器警告
 #define EIGEN_ONLY_USED_FOR_DEBUG(x) EIGEN_UNUSED_VARIABLE(x)
 #else
 #define EIGEN_ONLY_USED_FOR_DEBUG(x)
 #endif
 
+/// EIGEN_NO_DEPRECATED_WARNING 如果定义了这个宏，则表示 不需要有过期警告
 #ifndef EIGEN_NO_DEPRECATED_WARNING
+/// EIGEN_DEPRECATED 标记函数、变量或类等在新版本中被弃用的声明
   #if EIGEN_COMP_GNUC
+    /// 对与GNU编译器，使用__attribute__((deprecated))进行标记
     #define EIGEN_DEPRECATED __attribute__((deprecated))
   #elif EIGEN_COMP_MSVC
+    /// 对与MSVC编译器，使用__declspec((deprecated))进行标记
     #define EIGEN_DEPRECATED __declspec(deprecated)
   #else
+    /// 置空
     #define EIGEN_DEPRECATED
   #endif
 #else
+  /// 置空
   #define EIGEN_DEPRECATED
 #endif
 
@@ -953,14 +1025,20 @@
 #define EIGEN_UNUSED
 #endif
 
+/// 用这样一种巧妙的方式，消除编译器在编译过程中针对未使用变量的警告。
 // Suppresses 'unused variable' warnings.
 namespace Eigen {
   namespace internal {
     template<typename T> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void ignore_unused_variable(const T&) {}
   }
 }
+/// 声明这个宏  调用ignore_unused_variable(var)模板函数，这是第一个空函数，并被EIGEN_STRONG_INLINE修饰表示强烈建议内联，并且是引用传递参数，尽量降低函数调用的代价，而消除警告
 #define EIGEN_UNUSED_VARIABLE(var) Eigen::internal::ignore_unused_variable(var);
 
+/// 宏 EIGEN_ASM_COMMENT，它根据不同的编译器和架构选择是否使用内联汇编语句来插入注释。
+/// 在这里，根据条件编译和平台架构，
+/// 如果是使用的是 GNU 编译器并且目标架构是 x86、x86_64 或者 ARM、ARM64，则定义了一个EIGEN_ASM_COMMENT(X)宏，该宏会将参数X作为汇编语句中的注释插入代码中。
+/// 如果不满足这些条件，则定义一个空的 EIGEN_ASM_COMMENT(X) 宏，它不做任何操作
 #if !defined(EIGEN_ASM_COMMENT)
   #if EIGEN_COMP_GNUC && (EIGEN_ARCH_i386_OR_x86_64 || EIGEN_ARCH_ARM_OR_ARM64)
     #define EIGEN_ASM_COMMENT(X)  __asm__("#" X)
@@ -970,6 +1048,7 @@ namespace Eigen {
 #endif
 
 
+// TODO 读到这儿了 20231221_1812
 #if EIGEN_COMP_MSVC
   // NOTE MSVC often gives C4127 warnings with compiletime if statements. See bug 1362.
   // This workaround is ugly, but it does the job.

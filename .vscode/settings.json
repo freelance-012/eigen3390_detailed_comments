@@ -13,6 +13,9 @@
         "streambuf": "cpp",
         "functional": "cpp",
         "tuple": "cpp",
-        "openglsupport": "cpp"
+        "openglsupport": "cpp",
+        "new": "cpp",
+        "complex": "cpp",
+        "cerrno": "cpp"
     }
 }
