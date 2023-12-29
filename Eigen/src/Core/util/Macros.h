@@ -656,6 +656,7 @@
 #endif
 #endif
 
+/// 检查编译器是否支持类型萃取
 // Does the compiler support type_traits?
 // - full support of type traits was added only to GCC 5.1.0.
 // - 20150626 corresponds to the last release of 4.x libstdc++
@@ -670,6 +671,7 @@
 #endif
 #endif
 
+/// 检查编译器是否支持 可变参数模板
 // Does the compiler support variadic templates?
 #ifndef EIGEN_HAS_VARIADIC_TEMPLATES
 #if EIGEN_MAX_CPP_VER>=11 && (__cplusplus > 199711L || EIGEN_COMP_MSVC >= 1900) \
@@ -1103,17 +1105,23 @@ namespace Eigen {
 #endif
 
 
+/// 在不同编译器条件下定义EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR宏
+// 针对旧版MSVC编译器和一些特定情况（如CUDA 8）下的处理方式。使用基类的复制操作符就足够了
 #if EIGEN_COMP_MSVC_STRICT && (EIGEN_COMP_MSVC < 1900 || EIGEN_COMP_NVCC)
   // for older MSVC versions, as well as 1900 && CUDA 8, using the base operator is sufficient (cf Bugs 1000, 1324)
   #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
     using Base::operator =;
+/// 针对Clang编译器的特殊处理
 #elif EIGEN_COMP_CLANG // workaround clang bug (see http://forum.kde.org/viewtopic.php?f=74&t=102653)
+  /// 指定这个宏的操作：两个=操作符。 第一个是直接将Derived对象传给Base类的复制操作符，并返回当前对象的引用；
+  /// 第二个是一个模板函数，用于处理基类的派生类型DenseBase<OtherDerived>的复制操作符重载，将other通过other.derived()转为其派生类型，然后调用基类操作符
   #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
     using Base::operator =; \
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived& operator=(const Derived& other) { Base::operator=(other); return *this; } \
     template <typename OtherDerived> \
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived& operator=(const DenseBase<OtherDerived>& other) { Base::operator=(other.derived()); return *this; }
 #else
+  /// 使用基类的赋值操作符
   #define EIGEN_INHERIT_ASSIGNMENT_EQUAL_OPERATOR(Derived) \
     using Base::operator =; \
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Derived& operator=(const Derived& other) \
@@ -1137,6 +1145,7 @@ namespace Eigen {
 * that we use '\' and basically have a bunch of typedefs with their
 * documentation in a single line.
 **/
+/// 在宏定义中注释的限制，通过'!<'指示
 
 #define EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
   typedef typename Eigen::internal::traits<Derived>::Scalar Scalar; /*!< \brief Numeric type, e.g. float, double, int or std::complex<float>. */ \
@@ -1161,10 +1170,12 @@ namespace Eigen {
   EIGEN_GENERIC_PUBLIC_INTERFACE(Derived) \
   typedef typename Base::PacketScalar PacketScalar;
 
-
+/// 比较大小
 #define EIGEN_PLAIN_ENUM_MIN(a,b) (((int)a <= (int)b) ? (int)a : (int)b)
 #define EIGEN_PLAIN_ENUM_MAX(a,b) (((int)a >= (int)b) ? (int)a : (int)b)
 
+/// 这个宏定义的目的是在处理不同的尺寸情况时，确保正确地选择最小的尺寸，并且考虑了特殊的大小值（0、1 和 Dynamic）
+/// 0 1 Dynamic min(a,b)
 // EIGEN_SIZE_MIN_PREFER_DYNAMIC gives the min between compile-time sizes. 0 has absolute priority, followed by 1,
 // followed by Dynamic, followed by other finite values. The reason for giving Dynamic the priority over
 // finite values is that min(3, Dynamic) should be Dynamic, since that could be anything between 0 and 3.
@@ -1173,6 +1184,7 @@ namespace Eigen {
                            : ((int)a == Dynamic || (int)b == Dynamic) ? Dynamic \
                            : ((int)a <= (int)b) ? (int)a : (int)b)
 
+/// 这个宏 0 1  min(a,b)  Dynamic
 // EIGEN_SIZE_MIN_PREFER_FIXED is a variant of EIGEN_SIZE_MIN_PREFER_DYNAMIC comparing MaxSizes. The difference is that finite values
 // now have priority over Dynamic, so that min(3, Dynamic) gives 3. Indeed, whatever the actual value is
 // (between 0 and 3), it is not more than 3.
@@ -1183,14 +1195,19 @@ namespace Eigen {
                            : ((int)b == Dynamic) ? (int)a \
                            : ((int)a <= (int)b) ? (int)a : (int)b)
 
+/// Dynamic > max(a,b)
 // see EIGEN_SIZE_MIN_PREFER_DYNAMIC. No need for a separate variant for MaxSizes here.
 #define EIGEN_SIZE_MAX(a,b) (((int)a == Dynamic || (int)b == Dynamic) ? Dynamic \
                            : ((int)a >= (int)b) ? (int)a : (int)b)
 
+/// 逻辑异或  一个为真一个为假 
 #define EIGEN_LOGICAL_XOR(a,b) (((a) || (b)) && !((a) && (b)))
 
+/// 逻辑蕴涵  前提成立，结论必定成立  当a为true时，b如果为false，则违反了蕴含关系，返回false。  其他情形都不违反蕴含关系，返回true
 #define EIGEN_IMPLIES(a,b) (!(a) || (b))
 
+//?!! CwiseBinaryOp是什么，稍后要读 
+/// 这个宏就是调用CwiseBinaryOp  作为下面EIGEN_MAKE_CWISE_BINARY_OP的返回类型
 // the expression type of a standard coefficient wise binary operation
 #define EIGEN_CWISE_BINARY_RETURN_TYPE(LHS,RHS,OPNAME) \
     CwiseBinaryOp< \
@@ -1210,9 +1227,11 @@ namespace Eigen {
     return EIGEN_CWISE_BINARY_RETURN_TYPE(Derived,OtherDerived,OPNAME)(derived(), other.derived()); \
   }
 
+/// 这个宏定义最终返回一个布尔值，表示给定的操作名是否在指定的类型组合下受支持。
 #define EIGEN_SCALAR_BINARY_SUPPORTED(OPNAME,TYPEA,TYPEB) \
   (Eigen::internal::has_ReturnType<Eigen::ScalarBinaryOpTraits<TYPEA,TYPEB,EIGEN_CAT(EIGEN_CAT(Eigen::internal::scalar_,OPNAME),_op)<TYPEA,TYPEB>  > >::value)
 
+/// 对一个表达式进行二元操作时，返回的表达式类型
 #define EIGEN_EXPR_BINARYOP_SCALAR_RETURN_TYPE(EXPR,SCALAR,OPNAME) \
   CwiseBinaryOp<EIGEN_CAT(EIGEN_CAT(internal::scalar_,OPNAME),_op)<typename internal::traits<EXPR>::Scalar,SCALAR>, const EXPR, \
                 const typename internal::plain_constant_type<EXPR,SCALAR>::type>
@@ -1296,6 +1315,7 @@ namespace Eigen {
 #   endif
 #endif
 
+/// 用于指示编译器是否支持可变参数模板的特性
 #if EIGEN_HAS_VARIADIC_TEMPLATES
 // The all function is used to enable a variadic version of eigen_assert which can take a parameter pack as its input.
 namespace Eigen {

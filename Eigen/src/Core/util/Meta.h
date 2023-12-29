@@ -390,6 +390,8 @@ protected:
   *
   * The second template parameter eases SFINAE-based specializations.
   */
+/// 这个模板定义了一个 array_size 结构体，用于提供对象在编译时的元素数量作为常量表达式的访问。
+/// 如果在编译时无法确定大小，则默认“返回” Eigen::Dynamic。
 template<typename T, typename EnableIf = void> struct array_size {
   enum { value = Dynamic };
 };
@@ -647,11 +649,13 @@ T div_ceil(const T &a, const T &b)
   return (a+b-1) / b;
 }
 
+/// 这段注释表明以下函数的目的是当我们真正想在浮点数上进行严格相等比较时避免触发 -Wfloat-equal 警告。
 // The aim of the following functions is to bypass -Wfloat-equal warnings
 // when we really want a strict equality comparison on floating points.
 template<typename X, typename Y> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
 bool equal_strict(const X& x,const Y& y) { return x == y; }
 
+/// 这些特化版本旨在处理浮点数的严格相等比较，并使用了标准库中的比较函数来规避潜在的浮点数精度问题，同时避免产生警告。
 #if !defined(EIGEN_GPU_COMPILE_PHASE) || (!defined(EIGEN_CUDA_ARCH) && defined(EIGEN_CONSTEXPR_ARE_DEVICE_FUNC))
 template<> EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC
 bool equal_strict(const float& x,const float& y) { return std::equal_to<float>()(x,y); }

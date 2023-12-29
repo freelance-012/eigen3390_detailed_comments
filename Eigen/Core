@@ -21,7 +21,9 @@
 // it's where we do all the compiler/OS/arch detections and define most defaults.
 #include "src/Core/util/Macros.h"
 
-/// 
+/// 这个头文件的作用是检测当前环境所支持的 SIMD 指令集（如SSE、AVX、NEON等等），然后配置相应的内存对齐设置。
+/// SIMD指令集可以使得CPU同时处理多个数据元素，提高了并行计算能力，而配置对齐设置是为了确保数据存储在内存中按照特定的边界对齐，以便进行更高效的SIMD操作。
+/// ConfigureVectorization.h 文件可能包含了一系列的宏定义、条件编译指令和设置，用于根据当前系统和编译器支持的 SIMD 指令集来配置对齐设置，以优化程序的性能。
 // This detects SSE/AVX/NEON/etc. and configure alignment settings
 #include "src/Core/util/ConfigureVectorization.h"
 
@@ -46,6 +48,8 @@
 
 #include <complex>
 
+/// 这个头文件管理与 BLAS（Basic Linear Algebra Subprograms）和 MKL（Intel Math Kernel Library）相关的宏定义，
+/// 并包含了相应的头文件，用于配置和使用这些库提供的线性代数功能。
 // this include file manages BLAS and MKL related macros
 // and inclusion of their respective header files
 #include "src/Core/util/MKL_support.h"
@@ -63,26 +67,42 @@
 #include <omp.h>
 #endif
 
+/// 有些平台上可能没有<cerrno>文件，因此根据不同平台决定是否定义EIGEN_HAS_ERRNO宏，然后通过EIGEN_HAS_ERRNO来控制是否包含<cerrno>文件
 // MSVC for windows mobile does not have the errno.h file
 #if !(EIGEN_COMP_MSVC && EIGEN_OS_WINCE) && !EIGEN_COMP_ARM
 #define EIGEN_HAS_ERRNO
 #endif
 
 #ifdef EIGEN_HAS_ERRNO
+/// 该头文件中定义了错误码的相关功能和宏
 #include <cerrno>
 #endif
+
+/// <cstddef>：定义了一些常用的符号常量和类型，比如 std::size_t、std::ptrdiff_t，用于处理大小和指针的类型。
 #include <cstddef>
+/// <cstdlib>：包含了 C 标准库的函数声明，如内存分配和释放（malloc、free）、随机数生成函数（rand、srand）、其他杂项功能等。
 #include <cstdlib>
+/// <cmath>：定义了各种数学函数，比如三角函数、指数函数、对数函数等。这些函数在 <cmath> 中被定义为标准的数学操作。
 #include <cmath>
+/// <cassert>：提供了 assert 宏，用于调试中的断言检查。在代码中，使用 assert 可以进行条件检查，若条件不满足，则触发断言错误。
 #include <cassert>
+/// <functional>：包含了函数对象（函数符）、函数适配器等，用于实现泛型编程中的函数对象。
 #include <functional>
 #ifndef EIGEN_NO_IO
+  /// <iosfwd> 是一个前置声明头文件，主要用于前置声明输入输出流库 <iostream> 中的一些类和函数，而不包含实际的定义。
+  /// 它提供了一种方式，允许在不引入整个 <iostream> 头文件的情况下，进行输入输出流类的前置声明。
+  /// <iosfwd> 的引入允许你在需要使用这些类的前置声明时，仅通过前置声明而不需要包含整个 <iostream> 头文件，从而提高编译速度和降低编译依赖。
   #include <iosfwd>
 #endif
+/// <cstring>：提供了字符串操作函数，比如内存拷贝、字符串复制等。包含了 C 字符串操作的相关函数。
 #include <cstring>
+/// <string>：定义了 C++ 标准库中的字符串类 std::string，提供了字符串的操作和处理功能。
 #include <string>
+/// <limits>：包含了有关数值类型极限的定义，比如数据类型的最大值和最小值。
 #include <limits>
+/// <climits>定义了整数类型的常量和极限，比如 CHAR_BIT 表示一个字节中的位数，即字符的比特数
 #include <climits> // for CHAR_BIT
+/// <algorithm>包含了一些常用的算法，比如 std::min 和 std::max，用于求最小值和最大值。
 // for min/max:
 #include <algorithm>
 
@@ -134,8 +154,10 @@ namespace Eigen {
 
 // we use size_t frequently and we'll never remember to prepend it with std:: every time just to
 // ensure QNX/QCC support
+/// 对size_t使用频繁，并且比如 QNX/QCC 环境中的一些编译器可能不直接支持不带 std:: 前缀的 size_t。
 using std::size_t;
 // gcc 4.6.0 wants std:: for ptrdiff_t
+/// 这是因为在一些特定的情况下（比如旧版本的编译器），ptrdiff_t 需要带有 std:: 前缀才能正确使用，通过这个别名可以简化代码书写。
 using std::ptrdiff_t;
 
 }
