@@ -10,6 +10,10 @@
 #ifndef EIGEN_CONFIGURE_VECTORIZATION_H
 #define EIGEN_CONFIGURE_VECTORIZATION_H
 
+/// 这个头文件主要目的是定义 EIGEN_MAX_ALIGN_BYTES 和 EIGEN_MAX_STATIC_ALIGN_BYTES，分别代表动态分配数据和静态分配数据的最大对齐边界（以字节为单位）。
+/// 这两个值可以由用户指定。如果未指定，则根据体系结构、编译器和操作系统自动计算默认值。
+/// 此部分还定义了宏 EIGEN_ALIGN_TO_BOUNDARY(N)，它用于将数据对齐到 N 字节的边界。即使关闭了向量化指令集（EIGEN_VECTORIZE），也会进行数据对齐，以满足 SIMD 的要求。这样做的目的是保证向量化对二进制兼容性不产生影响。
+/// 这段代码中的注释指出，在未来转向使用更规范的 C++11 之后，可以优化和简化此部分代码。
 //------------------------------------------------------------------------------------------
 // Static and dynamic alignment control
 //
@@ -21,7 +25,6 @@
 // This section also defines macros EIGEN_ALIGN_TO_BOUNDARY(N) and the shortcuts EIGEN_ALIGN{8,16,32,_MAX}
 // to be used to declare statically aligned buffers.
 //------------------------------------------------------------------------------------------
-
 
 /* EIGEN_ALIGN_TO_BOUNDARY(n) forces data to be n-byte aligned. This is used to satisfy SIMD requirements.
  * However, we do that EVEN if vectorization (EIGEN_VECTORIZE) is disabled,
@@ -79,10 +82,12 @@
 // that unless EIGEN_ALIGN is defined and not equal to 0, the data may not be
 // aligned at all regardless of the value of this #define.
 
+/// EIGEN_MAX_STATIC_ALIGN_BYTES 和 EIGEN_DONT_ALIGN[_STATICALLY] 同时定义的问题，并建议使用 EIGEN_MAX_STATIC_ALIGN_BYTES=0 作为 EIGEN_DONT_ALIGN_STATICALLY 的同义词，即表示不进行静态对齐。
 #if (defined(EIGEN_DONT_ALIGN_STATICALLY) || defined(EIGEN_DONT_ALIGN))  && defined(EIGEN_MAX_STATIC_ALIGN_BYTES) && EIGEN_MAX_STATIC_ALIGN_BYTES>0
 #error EIGEN_MAX_STATIC_ALIGN_BYTES and EIGEN_DONT_ALIGN[_STATICALLY] are both defined with EIGEN_MAX_STATIC_ALIGN_BYTES!=0. Use EIGEN_MAX_STATIC_ALIGN_BYTES=0 as a synonym of EIGEN_DONT_ALIGN_STATICALLY.
 #endif
 
+/// 这两个宏是过期的
 // EIGEN_DONT_ALIGN_STATICALLY and EIGEN_DONT_ALIGN are deprecated
 // They imply EIGEN_MAX_STATIC_ALIGN_BYTES=0
 #if defined(EIGEN_DONT_ALIGN_STATICALLY) || defined(EIGEN_DONT_ALIGN)
@@ -93,6 +98,7 @@
 #endif
 
 #ifndef EIGEN_MAX_STATIC_ALIGN_BYTES
+  /// 如果没有定义这个宏，则自动分析 最佳的默认值
 
   // Try to automatically guess what is the best default value for EIGEN_MAX_STATIC_ALIGN_BYTES
 
@@ -145,7 +151,7 @@
 // It takes into account both the user choice to explicitly enable/disable alignment (by setting EIGEN_MAX_STATIC_ALIGN_BYTES)
 // and the architecture config (EIGEN_ARCH_WANTS_STACK_ALIGNMENT).
 // Henceforth, only EIGEN_MAX_STATIC_ALIGN_BYTES should be used.
-
+/// EIGEN_MAX_STATIC_ALIGN_BYTES>0 是确定是否要在堆栈上对数组进行对齐的真正条件
 
 // Shortcuts to EIGEN_ALIGN_TO_BOUNDARY
 #define EIGEN_ALIGN8  EIGEN_ALIGN_TO_BOUNDARY(8)
@@ -157,7 +163,6 @@
 #else
 #define EIGEN_ALIGN_MAX
 #endif
-
 
 // Dynamic alignment control
 
@@ -187,6 +192,7 @@
 
 //----------------------------------------------------------------------
 
+/// 如果禁用了内存对齐 EIGEN_MAX_ALIGN_BYTES，则禁用向量化 EIGEN_DONT_VECTORIZE
 // if alignment is disabled, then disable vectorization. Note: EIGEN_MAX_ALIGN_BYTES is the proper check, it takes into
 // account both the user's will (EIGEN_MAX_ALIGN_BYTES,EIGEN_DONT_ALIGN) and our own platform checks
 #if EIGEN_MAX_ALIGN_BYTES==0
@@ -218,7 +224,7 @@
 
     // Defines symbols for compile-time detection of which instructions are
     // used.
-    // EIGEN_VECTORIZE_YY is defined if and only if the instruction set YY is used
+    /// EIGEN_VECTORIZE_YY is defined if and only if the instruction set YY is used
     #define EIGEN_VECTORIZE
     #define EIGEN_VECTORIZE_SSE
     #define EIGEN_VECTORIZE_SSE2

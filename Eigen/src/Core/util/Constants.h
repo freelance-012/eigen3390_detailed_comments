@@ -226,6 +226,7 @@ enum UpLoType {
   Symmetric=0x20
 };
 
+/// 对齐方式
 /** \ingroup enums
   * Enum for indicating whether a buffer is aligned or not. */
 enum AlignmentType {
@@ -254,6 +255,7 @@ enum AlignmentType {
 #endif
 };
 
+/// 遍历或其他类似操作时的方向
 /** \ingroup enums
   * Enum containing possible values for the \p Direction parameter of
   * Reverse, PartialReduxExpr and VectorwiseOp. */
@@ -269,6 +271,7 @@ enum DirectionType {
   BothDirections 
 };
 
+/// 编译类型 线性遍历、向量化遍历等
 /** \internal \ingroup enums
   * Enum to specify how to traverse the entries of a matrix. */
 enum TraversalType {
@@ -291,6 +294,8 @@ enum TraversalType {
   AllAtOnceTraversal
 };
 
+/// 用于指定在遍历矩阵条目时是否展开循环。
+/// 用于控制循环展开的行为，可以根据需求选择是否展开内层、外层或全部循环，以优化代码执行效率。这些选项允许在优化性能和内存占用之间进行权衡。
 /** \internal \ingroup enums
   * Enum to specify whether to unroll loops when traversing over the entries of a matrix. */
 enum UnrollingType {
@@ -303,6 +308,7 @@ enum UnrollingType {
   CompleteUnrolling
 };
 
+/// 用于指定是使用默认的（内建的）实现还是使用特殊化（specialization）的实现。
 /** \internal \ingroup enums
   * Enum to specify whether to use the default (built-in) implementation or the specialization. */
 enum SpecializedType {
@@ -310,6 +316,7 @@ enum SpecializedType {
   BuiltIn
 };
 
+/// 用于指定矩阵或数组的存储选项，包括存储顺序和对齐要求
 /** \ingroup enums
   * Enum containing possible values for the \p _Options template parameter of
   * Matrix, Array and BandMatrix. */
@@ -324,6 +331,7 @@ enum StorageOptions {
   DontAlign = 0x2
 };
 
+/// 用于指定线性代数运算中的左侧或右侧应用矩阵变换的操作
 /** \ingroup enums
   * Enum for specifying whether to apply or solve on the left or right. */
 enum SideType {
@@ -358,6 +366,8 @@ enum AmbiVectorMode {
   IsSparse
 };
 
+/// 用作 DenseCoeffBase 和 MapBase 中的模板参数，指示应该提供哪些访问器（accessors）
+/// 这些访问级别可能包括通过成员函数间接访问，或者直接访问系数数据。
 /** \ingroup enums
   * Used as template parameter in DenseCoeffBase and MapBase to indicate 
   * which accessors should be provided. */
@@ -372,6 +382,7 @@ enum AccessorLevels {
   DirectWriteAccessors
 };
 
+/// 矩阵分解的不同方法
 /** \ingroup enums
   * Enum with options to give to various decompositions. */
 enum DecompositionOptions {
@@ -408,6 +419,7 @@ enum DecompositionOptions {
   GenEigMask = Ax_lBx | ABx_lx | BAx_lx
 };
 
+/// 表示了在 JacobiSVD 中的 QRPreconditioner 模板参数可能的取值。
 /** \ingroup enums
   * Possible values for the \p QRPreconditioner template parameter of JacobiSVD. */
 enum QRPreconditioners {
@@ -425,6 +437,7 @@ enum QRPreconditioners {
 #error The preprocessor symbol 'Success' is defined, possibly by the X11 header file X.h
 #endif
 
+/// 表示计算状态
 /** \ingroup enums
   * Enum for reporting the status of a computation. */
 enum ComputationInfo {
@@ -439,18 +452,23 @@ enum ComputationInfo {
   InvalidInput = 3
 };
 
+/// 用于指定在矩阵中存储特定变换的方式。
 /** \ingroup enums
   * Enum used to specify how a particular transformation is stored in a matrix.
   * \sa Transform, Hyperplane::transform(). */
 enum TransformTraits {
   /** Transformation is an isometry. */
+  /// Isometry：表示变换是等距变换（Isometry）。
   Isometry      = 0x1,
   /** Transformation is an affine transformation stored as a (Dim+1)^2 matrix whose last row is 
     * assumed to be [0 ... 0 1]. */
+  /// Affine：表示变换是仿射变换。在矩阵中，它被存储为一个 (Dim+1)^2 大小的矩阵，其中最后一行被假定为 [0 ... 0 1]。
   Affine        = 0x2,
   /** Transformation is an affine transformation stored as a (Dim) x (Dim+1) matrix. */
+  ///AffineCompact：表示变换是紧凑的仿射变换。它被存储为一个 (Dim) x (Dim+1) 的矩阵。
   AffineCompact = 0x10 | Affine,
   /** Transformation is a general projective transformation stored as a (Dim+1)^2 matrix. */
+  /// Projective：表示变换是投影变换，存储为一个 (Dim+1)^2 大小的矩阵。
   Projective    = 0x20
 };
 
